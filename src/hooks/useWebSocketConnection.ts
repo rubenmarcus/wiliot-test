@@ -36,8 +36,6 @@ export const useWebSocketConnection = () => {
           if (realData && mappedRealData.length > 1) {
             const newRealData = [...realData, ...MappedRealData(finalData)];
 
-            console.log(newRealData, "newRealData");
-
             if (newRealData.length > 10) {
               newRealData.splice(0, 2);
               newRealData.length = 10;
