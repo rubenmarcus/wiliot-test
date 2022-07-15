@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { WEBSOCKET_API_BASEURL } from "../config/consts";
+import { AppData, MappedAppData, WebSocketData } from "../types/types";
 import { MappedRealData } from "../utils/dataMapper";
 import { formattedTime } from "../utils/formatTime";
 
 export const useWebSocketConnection = () => {
-  const [appData, setAppData] = useState<any>([]);
-  const [realData, setRealData] = useState<any>([]);
-  const [firstProductDataMin, setFirstProductDataMin] = useState<any>([]);
-  const [firstProductData, setFirstProductData] = useState<any>([]);
-  const [secondProductData, setSecondProductData] = useState<any>([]);
+  const [appData, setAppData] = useState<AppData[]>([]);
+  const [realData, setRealData] = useState<MappedAppData[]>([]);
+  const [firstProductData, setFirstProductData] = useState<AppData[]>([]);
+  const [secondProductData, setSecondProductData] = useState<AppData[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
 
   useEffect(() => {
@@ -27,14 +27,16 @@ export const useWebSocketConnection = () => {
 
       try {
         if (data) {
-          const finalData = data.filter((data: any) => data.data <= 100);
-
-          const minute = 60;
+          const finalData = data.filter(
+            (data: WebSocketData) => data.data <= 100
+          );
 
           const mappedRealData = MappedRealData(finalData);
 
           if (realData && mappedRealData.length > 1) {
             const newRealData = [...realData, ...MappedRealData(finalData)];
+
+            console.log(newRealData, "newRealData");
 
             if (newRealData.length > 10) {
               newRealData.splice(0, 2);
@@ -46,8 +48,8 @@ export const useWebSocketConnection = () => {
           }
 
           const p1Data = finalData
-            .filter((data: any) => (data.id = 1))
-            .map((data: any) => {
+            .filter((data: WebSocketData) => (data.id = 1))
+            .map((data: WebSocketData) => {
               return {
                 timestamp: formattedTime(data.timestamp),
                 temperature: data.temperature,
@@ -56,7 +58,7 @@ export const useWebSocketConnection = () => {
 
           const p2Data = finalData
             .filter((data: any) => (data.id = 2))
-            .map((data: any) => {
+            .map((data: WebSocketData) => {
               return {
                 timestamp: formattedTime(data.timestamp),
                 temperature: data.temperature,
@@ -66,17 +68,7 @@ export const useWebSocketConnection = () => {
           const p1newData = [...firstProductData, ...p1Data];
           const p2newData = [...secondProductData, ...p2Data];
 
-          const firstProductDataMinNew = [...firstProductDataMin, ...p1Data];
-
           const newData = [...appData, ...finalData];
-
-          if (firstProductDataMinNew.length > minute) {
-            firstProductDataMinNew.splice(0, 10);
-            firstProductDataMinNew.length = minute;
-            setFirstProductDataMin(firstProductDataMinNew);
-          } else {
-            setFirstProductDataMin(firstProductDataMinNew);
-          }
 
           if (p1newData.length > 5) {
             p1newData.splice(0, 1);
